@@ -1025,10 +1025,18 @@ function practiceLogicRate(){
  if(state.replayPlayback){if(state.pressed.has('ControlLeft'))return speed.fast===21?15360:speed.fast*60;if(state.pressed.has('ShiftLeft')||state.pressed.has('ShiftRight'))return speed.slow;}
  return speed.fps;
 }
+function publishThpracPanels(){
+ if(!launcherContext)return;
+ const practice=practiceMenu?.isOpen===true,advanced=thpracToolsPanel?.isOpen===true;
+ document.documentElement.dataset.browserPracticeOpen=String(advanced);
+ window.dispatchEvent(new CustomEvent('eagler-thprac-menu',{detail:{
+  open:practice||advanced,practice,mobile:thpracToolsPanel?.overlayOpen===true
+ }}));
+}
 function installThpracToolPanel(){
  if(thpracToolsPanel)return;thpracToolsPanel=mountThprac128ToolsPanel({root:find('#thprac-tool-ui'),getOwner:()=>state.thpracTools??thpracDraftOwner,getLocale:()=>thpracSettings.locale,
-  onOpen:advanced=>{state.webInput?.setOverlayActive?.(advanced);if(!advanced)return;state.thpracToolsPaused=state.paused;state.paused=true;state.pressed.clear();worldMovementInput(0,763);clock.reset();thpracLogicClock.reset();refreshOpenPracticeReplay();},
-  onClose:advanced=>{state.webInput?.setOverlayActive?.(false);if(!advanced)return;if(state.active&&!menu.pauseOpen&&!document.hidden){state.paused=state.thpracToolsPaused===true;}clock.reset();thpracLogicClock.reset();find('#game')?.focus();},
+  onOpen:advanced=>{state.webInput?.setOverlayActive?.(advanced);publishThpracPanels();if(!advanced)return;state.thpracToolsPaused=state.paused;state.paused=true;state.pressed.clear();worldMovementInput(0,763);clock.reset();thpracLogicClock.reset();refreshOpenPracticeReplay();},
+  onClose:advanced=>{state.webInput?.setOverlayActive?.(false);publishThpracPanels();if(!advanced)return;if(state.active&&!menu.pauseOpen&&!document.hidden){state.paused=state.thpracToolsPaused===true;}clock.reset();thpracLogicClock.reset();find('#game')?.focus();},
   onChange:()=>{syncThpracToolMusic();clock.reset();thpracLogicClock.reset();}
  });
 }
@@ -1484,6 +1492,7 @@ function installPracticeMenu(){
   }),
   onRouteKey:code=>{handleNativeTitleKey(code);state.mainController?.keyUp(code);},
   onRouteChange:selection=>{if(selection>=0&&selection<4)state.thpracRouteTarget=selection;},
+  onVisibilityChange:publishThpracPanels,
   onCancel:()=>{if(!state.worldMode&&menu.page==='route'){thpracRouteShown=true;state.paused=false;clock.reset();resetHighFrameratePresentation();backNativePage();}},
   onFocusGame:()=>find('#game')?.focus(),launch:startThprac128Session
  });
